@@ -4,6 +4,13 @@
   <strong>Graphics, Stability, Audio Popping, DualSense Bluetooth, Window Auto-Focus & Cursor Hide Fix for <em>Resident Evil Requiem</em> on CrossOver macOS (Apple Silicon)</strong>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-Apple%20Silicon-black?logo=apple" alt="macOS" />
+  <img src="https://img.shields.io/badge/target-CrossOver%20%7C%20Resident%20Evil%20Requiem-007AFF" alt="Target" />
+  <img src="https://img.shields.io/badge/pipeline-D3DMetal%20%7C%20DX12%20%7C%20FSR1-blue" alt="Pipeline" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" /></a>
+</p>
+
 ---
 
 > [!NOTE]
