@@ -15,24 +15,29 @@
 
 > [!NOTE]
 > **AI-Generated Tool Disclosure**
-> **RE9-CrossOver-Fix** is an AI-generated configuration and launcher patcher created with **Antigravity** (Google DeepMind) to resolve D3DMetal/Apple Neural Engine crashes, DX12 swapchain black screens, 16 GB Unified Memory swap stutters, CoreAudio buffer underrun pops, Bluetooth PS5 DualSense detection, and macOS window focus/cursor capture issues when running *Resident Evil Requiem* (`re9.exe`) in CodeWeavers CrossOver.
+> **RE9-CrossOver-Fix** is an AI-generated configuration and launcher patcher created with **Antigravity** (Google DeepMind) for reported D3DMetal/MetalFX instability, DX12 swapchain black screens, 16 GB Unified Memory swap stutters, CoreAudio buffer underrun pops, Bluetooth PS5 DualSense detection, and macOS window focus/cursor capture issues when running *Resident Evil Requiem* (`re9.exe`) in CodeWeavers CrossOver. The MetalFX/ANE explanation below is a troubleshooting hypothesis, not a confirmed root cause for every system.
 
 ---
 
 ## 🔍 What Problems Does This Solve?
 
-### 1. Mid-Game Crashes & 11 ms Micro-Stutters (`AppleH11ANEInterface` / MetalFX)
-When running *Resident Evil Requiem* with `D3DM_ENABLE_METALFX=1` and `UpscalingAlgorithm=DLSS`, D3DMetal translates DLSS calls into MetalFX temporal upscaling routed through the Apple Neural Engine (`AppleH11ANEInterface`). On Apple Silicon Macs, the macOS kernel logs continuous event invalidations every single frame (~11 ms):
+### 1. MetalFX/ANE Log Correlation (Causality Unconfirmed)
+This project records `AppleH11ANEInterface` and `IOSurface` messages observed while running *Resident Evil Requiem* under CrossOver, alongside frame-time spikes or crashes. Example messages include:
 ```text
 AppleH11ANEInterface: processDeviceChainingEvent: Got invalidate event
 AppleH11ANEInterface: sharedEventNotification: Request not found
 IOSurface: buffer->fClientTask = 0x0 not found
 ```
-This per-frame kernel synchronization failure causes persistent frame-time spikes and eventually crashes the game.
+
+These messages alone do not establish that MetalFX caused the messages, that they cause the observed stutter/crash, or that the same issue affects every Mac, macOS, CrossOver, or game version. Apple describes MetalFX as a Metal upscaling framework; its current documentation specifically calls out Neural Engine acceleration for a redesigned temporal upscaler on M5 Pro and M5 Max. That does not confirm Neural Engine use by CrossOver's MetalFX path on other chips. See [Apple's MetalFX overview](https://developer.apple.com/documentation/MetalFX) and [Metal release notes](https://developer.apple.com/metal/whats-new/).
+
+Treat the settings below as a conservative workaround to try when the issue is reproducible, not as a proven universal fix. Record the game, macOS, CrossOver/GPTK version, chip, selected upscaler, and logs when comparing enabled and disabled settings.
 
 **How `RE9-CrossOver-Fix` solves it:**
-- Sets `"D3DM_ENABLE_METALFX" = "0"` in `cxbottle.conf`.
-- Configures `UpscalingAlgorithm=FSR1` (`UpscalingQuality_FSR1=Quality`, `UpscalingSharpness=8`) paired with `AntiAliasing=TAA` in `config.ini`. Upscaling runs 100% on GPU shaders without touching the Apple Neural Engine, delivering crisp image quality and zero ANE faults.
+- Sets `"D3DM_ENABLE_METALFX" = "0"` in `cxbottle.conf` to opt out of the D3DMetal MetalFX path used by the affected configuration.
+- Configures `UpscalingAlgorithm=FSR1` (`UpscalingQuality_FSR1=Quality`, `UpscalingSharpness=8`) paired with `AntiAliasing=TAA` in `config.ini`. This selects the game's FSR 1 upscaler instead of its DLSS option. Do not infer from this setting alone that ANE faults are prevented or that FSR 1 is faster on every system.
+
+The environment variable is separate from CrossOver's Metal Performance HUD: `MTL_HUD_ENABLED=1` can remain enabled for performance monitoring. Also, a different game sharing a bottle with `D3DM_ENABLE_METALFX=1` is not an A/B test for Requiem; it may use a different rendering or upscaling path.
 
 ---
 
